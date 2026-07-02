@@ -11,11 +11,10 @@ legal:
 
 retrieval:
   sources:
-    - {hf_dataset: uonlp/CulturaX,                  hf_config: tr,             text_field: text, weight: 0.40, quality_filter: true}
-    - {hf_dataset: turkish-nlp-suite/OzenliDerlem,  hf_config: Havadis,        text_field: text, weight: 0.20, quality_filter: true}
-    - {hf_dataset: turkish-nlp-suite/OzenliDerlem,  hf_config: KulturHaritasi, text_field: text, weight: 0.10, quality_filter: true}
-    - {hf_dataset: turkish-nlp-suite/AkademikDerlem, hf_config: makaleler,     text_field: text, weight: 0.20, quality_filter: true}
-    - {hf_dataset: HuggingFaceFW/fineweb-2,         hf_config: tur_Latn,       text_field: text, weight: 0.10, quality_filter: true}
+    - {hf_dataset: uonlp/CulturaX,                   hf_config: tr,             text_field: text, weight: 0.45, quality_filter: true}
+    - {hf_dataset: turkish-nlp-suite/OzenliDerlem,   hf_config: Havadis,        text_field: text, weight: 0.25, quality_filter: true}
+    - {hf_dataset: turkish-nlp-suite/OzenliDerlem,   hf_config: KulturHaritasi, text_field: text, weight: 0.10, quality_filter: true}
+    - {hf_dataset: turkish-nlp-suite/AkademikDerlem, hf_config: makaleler,      text_field: text, weight: 0.20, quality_filter: true}
   split: train
   streaming: true
   min_chars: 300

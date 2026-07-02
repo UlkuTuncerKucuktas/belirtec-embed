@@ -17,7 +17,7 @@ def _triple(ex, a_key, b_key, instruction, min_a, min_b):
     if len(a) < min_a or len(b) < min_b or a == b:
         return None
     hn = ex.get("hard_negatives", [])
-    if isinstance(hn, str):  # models sometimes return a bare string instead of a list
+    if isinstance(hn, str):
         hn = [hn]
     negs = [clean(x) for x in hn if clean(x)]
     negs = [n for n in dict.fromkeys(negs) if n and n not in (a, b)]
@@ -98,6 +98,8 @@ def generate_classification(gen, cfg: Config, target: int, per_label: int = 25) 
                 continue
             txt = clean(ex.get("text", ""))
             if len(txt) < 8 or txt in seen:
+                continue
+            if target_lab.lower() in txt.lower():
                 continue
             negs = [clean(m) for m in ex.get("misleading_labels", []) if clean(m) and clean(m) != target_lab]
             negs = list(dict.fromkeys(negs))

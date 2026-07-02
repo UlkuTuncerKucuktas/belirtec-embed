@@ -11,9 +11,12 @@ from belirtec.json_utils import clean
 _TR_CHARS = set("abcçdefgğhıijklmnoöprsştuüvyzABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ ")
 _ELLIPSIS = re.compile(r"\.\s*\.\s*\.|…")
 _WORD = re.compile(r"\b\w+\b", re.UNICODE)
+_LOWER_SENT = re.compile(r"\.\s+[a-zçğıöşü]")
 
 
 def _is_low_quality(text: str) -> bool:
+    # web text (FineWeb2/CulturaX) carries MT-slop with broken spacing, ellipsis runs,
+    # low lexical variety. mechanically detectable; drop before grounding.
     n = len(text)
     if n < 50:
         return True
@@ -28,6 +31,12 @@ def _is_low_quality(text: str) -> bool:
         return True
     if sum(len(w) for w in words) / len(words) < 3.0:
         return True
+    if len(_LOWER_SENT.findall(text)) > 4:                  # OCR-mangled PDF: sentences starting mid-word
+        return True
+    if len(words) >= 12:                                    # templated SEO: same phrase repeated
+        tri = [tuple(words[i : i + 3]) for i in range(len(words) - 2)]
+        if tri and max(tri.count(t) for t in set(tri)) >= 3:
+            return True
     return False
 
 
@@ -70,6 +79,8 @@ def _source_stream(
 
 
 def stream_retrieval(cfg: Config, shard_idx: int = 0, n_shards: int = 1) -> Iterator[Passage]:
+    # weighted round-robin over N sources: each turn, pick a source by weight and yield its
+    # next passage. seeded per shard so the mixture is reproducible and shards differ.
     sources = cfg.corpora.retrieval.sources
     streams = [_source_stream(s, cfg, shard_idx, n_shards) for s in sources]
     weights = [s.weight for s in sources]
@@ -81,4 +92,4 @@ def stream_retrieval(cfg: Config, shard_idx: int = 0, n_shards: int = 1) -> Iter
         try:
             yield next(streams[idx])
         except StopIteration:
-            alive.remove(idx)
+            alive.remove(idx)  # exhausted source drops out; others keep the mixture going

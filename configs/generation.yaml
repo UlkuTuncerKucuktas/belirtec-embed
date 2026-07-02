@@ -5,10 +5,10 @@ models:
   - {id: mistralai/Mistral-Small-24B-Instruct-2501, family: mistral}
 
 counts:
-  legal: 60
-  retrieval: 60
-  sts: 40
-  classification: 40
+  legal: 20000
+  retrieval: 20000
+  sts: 8000
+  classification: 15000
 
 vllm:
   max_model_len: 4096
