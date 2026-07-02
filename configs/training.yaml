@@ -1,0 +1,68 @@
+# Baseline = the exact recipe that produced the 64.96 champion (LoRA-legal),
+# with the synthetic buckets swapped to the published VistalabBelirtecSyntheticDataset
+# and classification enabled (the new clean bucket). Experiments in configs/experiments/
+# override only what they change.
+
+model:
+  base: BAAI/bge-m3
+  max_seq_length: 512
+  lora:
+    enabled: true
+    r: 32
+    alpha: 64            # 2r, matching champion
+    dropout: 0.05
+    targets: [query, key, value, dense]
+
+data:
+  synthetic_source: local          # local (data/*.jsonl, fast) | hf (published repo, reproducible)
+  synthetic_repo: UlkuTuncerKucuktas/VistalabBelirtecSyntheticDataset
+  local_paths:
+    legal: data/scored/legal.jsonl          # scored = mined + _forget_cos (superset)
+    retrieval: data/mined/retrieval.jsonl
+    sts: data/raw/sts.jsonl
+    classification: data/raw/classification.jsonl
+  real_nli_hf: emrecan/nli_tr_for_simcse
+  real_stsb_hf: emrecan/stsb-mt-turkish
+  nli_samples: 60000
+  num_negatives: 4
+  use_instructions: false
+  # per-bucket controls. enabled/limit/shuffle/seed, plus forgetting selection (legal only).
+  buckets:
+    legal:          {enabled: true, limit: null, shuffle: true, forgetting: {mode: null, threshold: 0.0}}
+    retrieval:      {enabled: true, limit: null, shuffle: true}
+    sts:            {enabled: true, limit: null, shuffle: true}
+    classification: {enabled: true, limit: null, shuffle: true}
+  real_nli: {enabled: true, limit: null}
+
+loss:
+  scale: 20.0
+  matryoshka_dims: [1024, 256]
+  gist_guide: BAAI/bge-m3          # guide model for CachedGISTEmbedLoss (NewMind recipe)
+  # per-dataset loss. contrastive baseline = mnrl (champion/InfoNCE); swap to gist for
+  # NewMind's CachedGISTEmbedLoss (+15.9% legal in their paper). classification stays
+  # mnrl+NO_DUPLICATES (label-name positives; guide-model false-neg filtering is unsafe
+  # on label words). stsb stays cosent (graded similarity).
+  per_dataset:
+    contrastive: mnrl              # mnrl | gist
+    classification: mnrl           # mnrl (keep — label-name safe)
+    stsb: cosent                   # cosent (graded)
+
+train:
+  precision: bf16
+  batch_size: 128
+  mini_batch_size: 128
+  epochs: 2
+  lr: 2.0e-4
+  warmup_ratio: 0.05
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  no_duplicates: true              # NO_DUPLICATES sampler (needed for label-name classification)
+  seed: 42
+  save_steps: 250
+  eval_steps: 250
+  logging_steps: 10
+
+# null = single-phase (champion). A list of phase overrides = staged fine-tuning.
+phases: null
+
+output_dir: ./runs/champion
