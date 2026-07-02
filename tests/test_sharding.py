@@ -8,10 +8,11 @@ def test_shards_disjoint_and_complete(tmp_path, monkeypatch):
     f = tmp_path / "legal.jsonl"
     with open(f, "w", encoding="utf-8") as out:
         for i in range(100):
-            out.write(json.dumps({"positive": "x" * 250, "id": i}) + "\n")
+            out.write(json.dumps({"positive": "kelime " * 100, "id": i}) + "\n")
 
     cfg = load_config()
     object.__setattr__(cfg.corpora.legal, "clean_file", str(f))
+    object.__setattr__(cfg.corpora.legal, "min_chars", 50)
 
     n = 4
     seen = [set() for _ in range(n)]
