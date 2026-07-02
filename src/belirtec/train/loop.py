@@ -82,6 +82,15 @@ def _run_one(cfg: TrainingConfig, output_dir: str, init_from: str | None):
     trainer.train()
 
     final_dir = os.path.join(output_dir, "final")
+    # LoRA: merge adapter into the base so `final/` is a STANDALONE model. Otherwise
+    # save_pretrained writes only adapter weights, and eval (or any loader) may silently
+    # fall back to the base model instead of applying the adapter -> wrong scores.
+    if cfg.model.lora.enabled:
+        try:
+            model[0].auto_model = model[0].auto_model.merge_and_unload()
+            print("[lora] adapter merged into base for standalone save")
+        except Exception as e:
+            print(f"[lora] merge_and_unload failed ({e}); saving adapter form")
     model.save_pretrained(final_dir)
     print(f"[done] {final_dir}")
     return final_dir
