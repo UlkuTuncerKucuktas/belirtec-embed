@@ -2,9 +2,9 @@ legal:
   clean_file: data/legal_grounding_clean.jsonl
   raw_source: erdem-erdem/Turkish-Law-Documents-700k-clustered
   eval_sets:
-    - newmindai/Mizan-Caselaw
-    - newmindai/Mizan-Regulation
-    - newmindai/Mizan-Contract
+    - newmindai/caselaw-retrieval
+    - newmindai/regulation-retrieval
+    - newmindai/contract-retrieval
   text_field: positive
   min_chars: 300
   max_chars: 2000
