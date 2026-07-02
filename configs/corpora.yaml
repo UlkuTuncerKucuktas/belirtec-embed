@@ -1,0 +1,22 @@
+legal:
+  clean_file: data/legal_grounding_clean.jsonl
+  raw_source: erdem-erdem/Turkish-Law-Documents-700k-clustered
+  eval_sets:
+    - newmindai/Mizan-Caselaw
+    - newmindai/Mizan-Regulation
+    - newmindai/Mizan-Contract
+  text_field: positive
+  min_chars: 300
+  max_chars: 2000
+
+retrieval:
+  sources:
+    - {hf_dataset: uonlp/CulturaX,                  hf_config: tr,             text_field: text, weight: 0.40, quality_filter: true}
+    - {hf_dataset: turkish-nlp-suite/OzenliDerlem,  hf_config: Havadis,        text_field: text, weight: 0.20, quality_filter: true}
+    - {hf_dataset: turkish-nlp-suite/OzenliDerlem,  hf_config: KulturHaritasi, text_field: text, weight: 0.10, quality_filter: true}
+    - {hf_dataset: turkish-nlp-suite/AkademikDerlem, hf_config: makaleler,     text_field: text, weight: 0.20, quality_filter: true}
+    - {hf_dataset: HuggingFaceFW/fineweb-2,         hf_config: tur_Latn,       text_field: text, weight: 0.10, quality_filter: true}
+  split: train
+  streaming: true
+  min_chars: 300
+  max_chars: 2000

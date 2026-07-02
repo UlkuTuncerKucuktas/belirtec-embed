@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "belirtec-embed"
+version = "0.1.0"
+description = "Grounded synthetic data generation for Turkish embedding models"
+requires-python = ">=3.10"
+dependencies = ["pyyaml", "datasets", "tqdm"]
+
+[project.optional-dependencies]
+gen = ["vllm"]
+process = ["sentence-transformers", "torch"]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

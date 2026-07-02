@@ -1,0 +1,26 @@
+models:
+  - {id: google/gemma-4-31B-it, family: gemma}
+  - {id: Qwen/Qwen3-32B, family: qwen}
+  - {id: zai-org/GLM-4-32B-0414, family: glm}
+  - {id: mistralai/Mistral-Small-24B-Instruct-2501, family: mistral}
+
+counts:
+  legal: 60
+  retrieval: 60
+  sts: 40
+  classification: 40
+
+vllm:
+  max_model_len: 4096
+  gpu_memory_utilization: 0.90
+
+sampling:
+  temp_tasks: 0.9
+  temp_samples: 0.8
+  top_p: 0.95
+  seed: 42
+  max_tokens_query: 256
+  max_tokens_samples: 2048
+
+hub:
+  dataset_repo: UlkuTuncerKucuktas/VistalabBelirtecSyntheticDataset

@@ -1,0 +1,39 @@
+# Diversity axes. One (persona, intent, difficulty) triplet is sampled per passage
+# and conditions the generated query. difficulty maps label -> sampling weight.
+
+legal:
+  persona:
+    - avukat
+    - hâkim
+    - mali müşavir
+    - hukuk öğrencisi
+    - şirket hukuk danışmanı
+    - vatandaş
+  intent:
+    - emsal karar arama
+    - mevzuat kontrolü
+    - prosedür/süre sorusu
+    - tanım/kavram
+    - hak/yükümlülük
+  difficulty:
+    doğrudan: 1
+    dolaylı: 2
+    çıkarımsal: 2
+
+retrieval:
+  persona:
+    - öğrenci
+    - araştırmacı
+    - gazeteci
+    - meraklı okur
+    - profesyonel
+  intent:
+    - tanım
+    - nasıl-yapılır
+    - neden-açıklama
+    - karşılaştırma
+    - güncel-bilgi
+  difficulty:
+    doğrudan: 1
+    dolaylı: 2
+    çıkarımsal: 1
