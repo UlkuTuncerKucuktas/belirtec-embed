@@ -13,3 +13,6 @@ regen.log
 *.log
 runs/
 results/
+src/belirtec-embed/
+runs/
+*.egg-info/
