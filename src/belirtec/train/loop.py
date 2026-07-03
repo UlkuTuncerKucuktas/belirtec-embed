@@ -6,6 +6,91 @@ import os
 from belirtec.train.train_config import TrainingConfig, _build, load_training_config
 
 
+# --------------------------------------------------------------------------- #
+# stability guards                                                             #
+# --------------------------------------------------------------------------- #
+def _nonfinite_grad_guard():
+    """Trainer callback that skips optimizer steps whose gradients are non-finite.
+
+    bf16 autocast has no GradScaler, so nothing natively detects inf/NaN
+    gradients; one poisoned batch flows through ``clip_grad_norm_`` (which turns
+    an inf norm into NaN scaling) straight into permanently-NaN weights.
+    Zeroing all grads makes ``optimizer.step()`` a no-op for that batch, which
+    is exactly what fp16's GradScaler does automatically.
+    """
+    import torch
+    from transformers import TrainerCallback
+
+    class NonFiniteGradSkip(TrainerCallback):
+        def on_pre_optimizer_step(self, args, state, control, model=None, **kwargs):
+            if model is None:
+                return
+            for p in model.parameters():
+                g = p.grad
+                if g is not None and not torch.isfinite(g).all():
+                    model.zero_grad(set_to_none=True)
+                    print(
+                        f"[grad-guard] non-finite gradient at step "
+                        f"{state.global_step}; update skipped"
+                    )
+                    return
+
+    return NonFiniteGradSkip()
+
+
+def _merge_lora(model) -> bool:
+    """Merge trained LoRA weights into the base transformer, in place.
+
+    After merging, the model is a plain transformer again and
+    ``save_pretrained`` writes a standalone checkpoint (full weights, no
+    adapter files, loads without peft).
+
+    Handles both construction styles:
+      * PeftModel wrap (our ``attach_lora``): ``merge_and_unload()``.
+      * In-place injected adapters (transformers' ``add_adapter``): merge each
+        LoRA layer's weights into its base module, swap the base module back
+        in, and clear transformers' peft bookkeeping so ``save_pretrained``
+        writes full weights instead of adapter-only.
+
+    Returns True if a merge happened, False if there was nothing to merge.
+    ``safe_merge=True`` makes peft verify the merged weights are finite.
+    """
+    auto_model = model[0].auto_model
+
+    if hasattr(auto_model, "merge_and_unload"):
+        model[0].auto_model = auto_model.merge_and_unload(safe_merge=True)
+        return True
+
+    try:
+        from peft.tuners.tuners_utils import BaseTunerLayer
+    except ImportError:
+        return False
+
+    lora_layers = [
+        (name, mod) for name, mod in auto_model.named_modules()
+        if isinstance(mod, BaseTunerLayer)
+    ]
+    if not lora_layers:
+        return False
+
+    for name, mod in lora_layers:
+        mod.merge(safe_merge=True)
+        parent = auto_model.get_submodule(name.rsplit(".", 1)[0]) if "." in name else auto_model
+        setattr(parent, name.rsplit(".", 1)[-1], mod.get_base_layer())
+
+    if getattr(auto_model, "_hf_peft_config_loaded", False):
+        auto_model._hf_peft_config_loaded = False
+    if hasattr(auto_model, "peft_config"):
+        try:
+            del auto_model.peft_config
+        except Exception:
+            pass
+    return True
+
+
+# --------------------------------------------------------------------------- #
+# training                                                                     #
+# --------------------------------------------------------------------------- #
 def _training_args(cfg: TrainingConfig, output_dir: str, has_eval: bool):
     from sentence_transformers import SentenceTransformerTrainingArguments
 
@@ -17,6 +102,13 @@ def _training_args(cfg: TrainingConfig, output_dir: str, has_eval: bool):
         warmup_ratio=cfg.train.warmup_ratio,
         weight_decay=cfg.train.weight_decay,
         max_grad_norm=cfg.train.max_grad_norm,
+        # torch>=2.8 silently flips the HF default optimizer to adamw_torch_fused,
+        # whose fused kernels have a NaN history (pytorch/pytorch#95781). Pin the
+        # unfused optimizer the champion recipe was validated on.
+        optim="adamw_torch",
+        # The default (True) replaces NaN/Inf losses with recent averages when
+        # logging, which hides divergence. Log the truth.
+        logging_nan_inf_filter=False,
         fp16=(cfg.train.precision == "fp16"),
         bf16=(cfg.train.precision == "bf16"),
         logging_steps=cfg.train.logging_steps,
@@ -48,17 +140,21 @@ def _run_one(cfg: TrainingConfig, output_dir: str, init_from: str | None):
 
     from belirtec.train.data import build_datasets
     from belirtec.train.loss import build_losses
-    from belirtec.train.model import build_model
+    from belirtec.train.model import attach_lora, build_model
 
     os.makedirs(output_dir, exist_ok=True)
 
     if init_from:
-        # staged: continue from a prior phase checkpoint
+        # Staged runs chain checkpoints. Each phase's final model is MERGED
+        # (standalone), so a phase that trains with LoRA attaches a FRESH
+        # adapter on top of the previous phase's merged weights.
         from sentence_transformers import SentenceTransformer
 
         print(f"[phase] init from {init_from}")
         model = SentenceTransformer(init_from)
         model.max_seq_length = cfg.model.max_seq_length
+        if cfg.model.lora.enabled:
+            attach_lora(model, cfg)
     else:
         model = build_model(cfg)
 
@@ -77,20 +173,20 @@ def _run_one(cfg: TrainingConfig, output_dir: str, init_from: str | None):
 
     args = _training_args(cfg, output_dir, has_eval=evaluator is not None)
     trainer = SentenceTransformerTrainer(
-        model=model, args=args, train_dataset=train_datasets, loss=losses, evaluator=evaluator
+        model=model, args=args, train_dataset=train_datasets, loss=losses,
+        evaluator=evaluator, callbacks=[_nonfinite_grad_guard()],
     )
     trainer.train()
 
     final_dir = os.path.join(output_dir, "final")
-    # LoRA: merge adapter into the base so `final/` is a STANDALONE model. Otherwise
-    # save_pretrained writes only adapter weights, and eval (or any loader) may silently
-    # fall back to the base model instead of applying the adapter -> wrong scores.
     if cfg.model.lora.enabled:
         try:
-            model[0].auto_model = model[0].auto_model.merge_and_unload()
-            print("[lora] adapter merged into base for standalone save")
+            if _merge_lora(model):
+                print("[lora] adapter merged into base; saving standalone model")
+            else:
+                print("[lora] no adapter layers found; saving as-is")
         except Exception as e:
-            print(f"[lora] merge_and_unload failed ({e}); saving adapter form")
+            print(f"[lora] merge failed ({e}); saving adapter form")
     model.save_pretrained(final_dir)
     print(f"[done] {final_dir}")
     return final_dir
@@ -124,7 +220,7 @@ def run(config_path: str | None = None, experiment: str | None = None):
             init = prev_final
         elif init_ref in checkpoints:
             init = checkpoints[init_ref]
-        print(f"\n{'='*60}\n[phase {i}] {name}  (init_from={init})\n{'='*60}")
+        print(f"\n{'=' * 60}\n[phase {i}] {name}  (init_from={init})\n{'=' * 60}")
 
         last = _run_one(phase_cfg, out, init_from=init)
         checkpoints[name] = last
