@@ -155,6 +155,38 @@ def _build_real_nli(data: DataCfg, seed: int) -> list[dict]:
     return out
 
 
+def _build_msmarco(data: DataCfg, seed: int) -> list[dict]:
+    """Load newmindai/ms-marco-turkish-triplets (query_text/pos_text/neg_text) as
+    contrastive rows. Controlled by data.msmarco = {enabled, limit, repo}."""
+    ms = data.msmarco
+    if not ms or not ms.get("enabled"):
+        return []
+    from datasets import load_dataset
+
+    repo = ms.get("repo", "newmindai/ms-marco-turkish-triplets")
+    try:
+        ds = load_dataset(repo, split="train")
+    except Exception as e:
+        print(f"[warn] MS MARCO load failed ({e}); continuing without it")
+        return []
+    idx = list(range(len(ds)))
+    rng = random.Random(seed)
+    rng.shuffle(idx)
+    lim = ms.get("limit")
+    if lim:
+        idx = idx[:lim]
+    out = []
+    for i in idx:
+        ex = ds[i]
+        row = _contrastive_row(
+            ex.get("query_text"), ex.get("pos_text"), [ex.get("neg_text")],
+            data.num_negatives, None, data.use_instructions,
+        )
+        if row:
+            out.append(row)
+    return out
+
+
 def build_stsb(cfg: TrainingConfig):
     from datasets import load_dataset
 
@@ -196,8 +228,12 @@ def build_stsb(cfg: TrainingConfig):
                     s = float(ex[scc]) / ediv
                 except Exception:
                     continue
-                S1.append(" ".join(str(ex[s1]).split()))
-                S2.append(" ".join(str(ex[s2]).split()))
+                a = " ".join(str(ex[s1]).split())
+                b = " ".join(str(ex[s2]).split())
+                if not a or not b:      # empty/whitespace -> NaN embedding -> eval crash
+                    continue
+                S1.append(a)
+                S2.append(b)
                 SC.append(s)
             if S1:
                 ev = (S1, S2, SC)
@@ -225,6 +261,10 @@ def build_datasets(cfg: TrainingConfig) -> tuple[dict, dict, tuple | None]:
     nli_rows = _build_real_nli(data, seed)
     counts["nli"] = len(nli_rows)
     contrastive += nli_rows
+
+    ms_rows = _build_msmarco(data, seed)
+    counts["msmarco"] = len(ms_rows)
+    contrastive += ms_rows
 
     for name in ("retrieval", "sts", "legal"):
         spec = data.buckets.get(name)

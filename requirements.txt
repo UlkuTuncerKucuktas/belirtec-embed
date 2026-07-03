@@ -1,0 +1,27 @@
+# belirtec-embed — training + evaluation environment (KNOWN-GOOD PINNED STACK)
+#
+# WHY THESE PINS — do not upgrade casually:
+#   Bleeding-edge stacks caused NaN training collapse TWICE in this project:
+#   (1) transformers 5.12 + torch 2.11 -> grad_norm=nan at step 1 (original saga);
+#   (2) torch 2.11+cu130 in the merged gen2 env -> grad_norm=nan on MS MARCO runs
+#       (torch>=2.8 also silently flips the HF Trainer default optimizer to
+#       adamw_torch_fused, which has a NaN history: pytorch/pytorch#95781).
+#   The stack below is the validated one (the original 64.96 champion trained on it).
+#
+# Install:
+#   conda create -n belirtec python=3.11 -y && conda activate belirtec
+#   pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu124
+#   pip install -r requirements.txt && pip install -e .
+
+transformers==4.49.0
+sentence-transformers==4.1.0
+peft==0.19.1
+datasets==3.6.0
+accelerate>=1.0,<1.6
+mteb==1.39.7            # 1.x API required by vendored mteb_eval.py; calibrated vs Mizan (+0.20/-0.25)
+pandas>=2.0
+scikit-learn>=1.3
+pyyaml>=6.0
+tqdm
+huggingface-hub
+pytest

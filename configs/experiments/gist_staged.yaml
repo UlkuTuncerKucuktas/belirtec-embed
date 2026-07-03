@@ -1,0 +1,23 @@
+# GIST loss (NewMind's +15.9% legal recipe) + forgetting-staged two-phase training.
+# Best-guess combined winner: GIST on the contrastive mix, then a low-LR refine pass
+# on the risky legal tail + small retrieval ballast.
+loss:
+  per_dataset:
+    contrastive: gist
+phases:
+  - name: base
+    data:
+      buckets:
+        legal: {forgetting: {mode: filter, threshold: 0.0}}
+    train: {epochs: 2, lr: 2.0e-4}
+  - name: hard_refine
+    init_from: PREV
+    data:
+      buckets:
+        legal:          {forgetting: {mode: keep_risky, threshold: 0.0}}
+        retrieval:      {limit: 2000, shuffle: true}
+        sts:            {enabled: false}
+        classification: {enabled: false}
+      real_nli: {enabled: false}
+    train: {epochs: 1, lr: 2.0e-5}
+output_dir: ./runs/gist_staged

@@ -1,0 +1,9 @@
+# Your legal pairs AND MS MARCO-TR together, GIST loss. Tests whether legal-domain
+# pairs and general MS MARCO retrieval are complementary (both help) or redundant.
+loss:
+  per_dataset: {contrastive: gist}
+data:
+  buckets:
+    legal: {enabled: true}
+  msmarco: {enabled: true, limit: 20000, repo: newmindai/ms-marco-turkish-triplets}
+output_dir: ./runs/legal_msmarco_gist

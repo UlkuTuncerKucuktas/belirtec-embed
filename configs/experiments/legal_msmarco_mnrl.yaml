@@ -1,0 +1,7 @@
+# Your legal pairs AND MS MARCO-TR together, champion mnrl loss. Completes the 2x2:
+# (msmarco-only vs legal+msmarco) x (mnrl vs gist).
+data:
+  buckets:
+    legal: {enabled: true}
+  msmarco: {enabled: true, limit: 20000, repo: newmindai/ms-marco-turkish-triplets}
+output_dir: ./runs/legal_msmarco_mnrl

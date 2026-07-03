@@ -55,6 +55,7 @@ class DataCfg:
     use_instructions: bool
     buckets: dict[str, BucketSpec]
     real_nli: BucketSpec
+    msmarco: dict | None = None
 
 
 @dataclass(frozen=True)
@@ -124,6 +125,7 @@ def _build(raw: dict) -> TrainingConfig:
         use_instructions=d["use_instructions"],
         buckets={k: _bucket_spec(v) for k, v in d["buckets"].items()},
         real_nli=_bucket_spec(d.get("real_nli", {})),
+        msmarco=d.get("msmarco"),
     )
 
     loss = LossCfg(**raw["loss"])

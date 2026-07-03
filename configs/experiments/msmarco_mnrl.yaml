@@ -1,0 +1,8 @@
+# MS MARCO-TR replaces the legal bucket; champion mnrl loss. Tests NewMind's data
+# (newmindai/ms-marco-turkish-triplets) on your baseline recipe. limit=20000 matches
+# the legal bucket size for a fair source-swap comparison.
+data:
+  buckets:
+    legal: {enabled: false}
+  msmarco: {enabled: true, limit: 20000, repo: newmindai/ms-marco-turkish-triplets}
+output_dir: ./runs/msmarco_mnrl

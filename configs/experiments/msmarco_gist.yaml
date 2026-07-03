@@ -1,0 +1,10 @@
+# NewMind's actual recipe on your pipeline: MS MARCO-TR + GISTEmbed.
+# Legal disabled, MS MARCO in, GIST on contrastive. Direct comparison vs your gist
+# (which uses your legal pairs instead of MS MARCO).
+loss:
+  per_dataset: {contrastive: gist}
+data:
+  buckets:
+    legal: {enabled: false}
+  msmarco: {enabled: true, limit: 20000, repo: newmindai/ms-marco-turkish-triplets}
+output_dir: ./runs/msmarco_gist

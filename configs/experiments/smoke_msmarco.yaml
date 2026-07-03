@@ -1,0 +1,12 @@
+# Regression smoke for the NaN incident: MS MARCO in the mix + an early eval step.
+# Must pass on any env before real runs are trusted there.
+data:
+  nli_samples: 200
+  buckets:
+    legal:          {enabled: true, limit: 200}
+    retrieval:      {enabled: true, limit: 200}
+    sts:            {enabled: true, limit: 200}
+    classification: {enabled: true, limit: 200}
+  msmarco: {enabled: true, limit: 500, repo: newmindai/ms-marco-turkish-triplets}
+train: {epochs: 1, save_steps: 50, eval_steps: 50}
+output_dir: ./runs/smoke_msmarco
