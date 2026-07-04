@@ -1,9 +1,5 @@
-# GIST loss (NewMind's +15.9% legal recipe) + forgetting-staged two-phase training.
-# Best-guess combined winner: GIST on the contrastive mix, then a low-LR refine pass
-# on the risky legal tail + small retrieval ballast.
-loss:
-  per_dataset:
-    contrastive: gist
+# R9 | LoRA | two-stage: phase1 all-synth+safe-legal, phase2 low-LR risky-legal tail | mnrl
+# Purpose: two-stage arm (vs single-stage champion R5).
 phases:
   - name: base
     data:
@@ -20,4 +16,4 @@ phases:
         classification: {enabled: false}
       real_nli: {enabled: false}
     train: {epochs: 1, lr: 2.0e-5}
-output_dir: ./runs/gist_staged
+output_dir: ./runs/lora_staged_safe2hard_mnrl

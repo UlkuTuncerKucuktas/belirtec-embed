@@ -1,9 +1,0 @@
-data:
-  nli_samples: 200
-  buckets:
-    legal:          {enabled: true, limit: 200}
-    retrieval:      {enabled: true, limit: 200}
-    sts:            {enabled: true, limit: 200}
-    classification: {enabled: true, limit: 200}
-train: {epochs: 1, save_steps: 50, eval_steps: 50}
-output_dir: ./runs/smoke

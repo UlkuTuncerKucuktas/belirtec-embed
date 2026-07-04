@@ -1,0 +1,13 @@
+# R3b | full fine-tuning | all synthetic from ALL 4 models, subsampled to match R3's volume | mnrl
+# Purpose: multi-model arm of the diversity experiment. Same total volume as R3 (single-model),
+# but rows drawn across all 4 generators. R3 vs R3b isolates DIVERSITY at equal volume.
+# Limits match gemma's per-bucket counts (legal 4975, retr 4999, sts 1963, cls 3750).
+model: {lora: {enabled: false}}
+data:
+  buckets:
+    legal:          {limit: 4975, shuffle: true}
+    retrieval:      {limit: 4999, shuffle: true}
+    sts:            {limit: 1963, shuffle: true}
+    classification: {limit: 3750, shuffle: true}
+train: {lr: 1.0e-4}
+output_dir: ./runs/fullft_multimodel_sizematch_mnrl

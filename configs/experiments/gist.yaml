@@ -1,7 +1,0 @@
-# NewMind's CachedGISTEmbedLoss on the contrastive mix (+15.9% legal in their paper).
-# Only the contrastive dataset switches; classification stays mnrl (label-name safe),
-# stsb stays cosent.
-loss:
-  per_dataset:
-    contrastive: gist
-output_dir: ./runs/gist

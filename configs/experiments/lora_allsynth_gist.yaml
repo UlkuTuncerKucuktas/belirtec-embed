@@ -1,0 +1,4 @@
+# R11 | LoRA | all synth + legal | gist
+# Purpose: gist arm vs mnrl R5 (loss ablation).
+loss: {per_dataset: {contrastive: gist}}
+output_dir: ./runs/lora_allsynth_gist

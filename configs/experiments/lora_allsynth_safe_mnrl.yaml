@@ -1,0 +1,6 @@
+# R6 | LoRA | all synth + legal, legal restricted to SAFE subset (forget=filter) | mnrl
+# Purpose: legal-hardness safe arm (vs R7 hard, vs champion R5 = all legal).
+data:
+  buckets:
+    legal: {forgetting: {mode: filter, threshold: 0.0}}
+output_dir: ./runs/lora_allsynth_safe_mnrl

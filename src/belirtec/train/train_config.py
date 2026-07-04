@@ -41,6 +41,7 @@ class BucketSpec:
     shuffle: bool = True
     seed: int | None = None
     forgetting: Forgetting = field(default_factory=Forgetting)
+    model_filter: str | None = None
 
 
 @dataclass(frozen=True)

@@ -1,5 +1,0 @@
-# Reproduces the 64.96 champion (LoRA-legal) with synthetic buckets from the published
-# dataset. This is the REGRESSION GATE: before trusting any new experiment, champion.yaml
-# must reproduce ~64.96 Mean / ~52 Legal. Identical to training.yaml defaults; explicit here
-# so the reproduce-target is versioned.
-output_dir: ./runs/champion

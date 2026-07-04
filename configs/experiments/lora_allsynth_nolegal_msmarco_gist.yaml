@@ -1,0 +1,7 @@
+# R12 | LoRA | all synth - legal + msmarco | gist  (NewMind recipe: msmarco replaces legal)
+# Purpose: msmarco-without-legal (vs R13 with legal = legal's marginal value).
+loss: {per_dataset: {contrastive: gist}}
+data:
+  buckets: {legal: {enabled: false}}
+  msmarco: {enabled: true, limit: 20000, repo: newmindai/ms-marco-turkish-triplets}
+output_dir: ./runs/lora_allsynth_nolegal_msmarco_gist

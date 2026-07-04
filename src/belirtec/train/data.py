@@ -89,11 +89,22 @@ def _apply_limit(rows: list[dict], spec: BucketSpec, global_seed: int) -> list[d
     return rows[: spec.limit]
 
 
+def _apply_model_filter(rows: list[dict], spec: BucketSpec) -> list[dict]:
+    if not spec.model_filter:
+        return rows
+    filtered = [r for r in rows if r.get("_model") == spec.model_filter]
+    if not filtered:
+        print(f"[warn] model_filter={spec.model_filter!r} matched 0 rows; keeping all")
+        return rows
+    print(f"[data] model_filter={spec.model_filter}: {len(rows)} -> {len(filtered)} rows")
+    return filtered
+
+
 def _select(rows: list[dict], spec: BucketSpec, global_seed: int) -> list[dict]:
+    rows = _apply_model_filter(rows, spec)
     rows = _apply_forgetting(rows, spec)
     rows = _apply_limit(rows, spec, global_seed)
     return rows
-
 
 # ---------------- bucket loading (local or hf) ----------------
 def _load_bucket_rows(name: str, data: DataCfg) -> list[dict]:

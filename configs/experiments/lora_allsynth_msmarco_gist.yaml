@@ -1,0 +1,6 @@
+# R13 | LoRA | all synth + legal + msmarco | gist
+# Purpose: legal + msmarco combined (vs R12 without legal).
+loss: {per_dataset: {contrastive: gist}}
+data:
+  msmarco: {enabled: true, limit: 20000, repo: newmindai/ms-marco-turkish-triplets}
+output_dir: ./runs/lora_allsynth_msmarco_gist

@@ -1,0 +1,11 @@
+# R1 | full fine-tuning | real NLI+STS only, NO synthetic buckets | mnrl
+# Purpose: floor for "does synthetic data help" (vs R2).
+model: {lora: {enabled: false}}
+data:
+  buckets:
+    legal:          {enabled: false}
+    retrieval:      {enabled: false}
+    sts:            {enabled: false}
+    classification: {enabled: false}
+train: {lr: 1.0e-4}
+output_dir: ./runs/fullft_realonly_mnrl

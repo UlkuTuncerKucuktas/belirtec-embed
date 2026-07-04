@@ -1,0 +1,12 @@
+# R3 | full fine-tuning | ALL synthetic buckets filtered to ONE generator (gemma-4-31B) | mnrl
+# Purpose: single-model arm of the diversity experiment (vs R3b, volume-matched multi).
+# ~1/4 of total synthetic data (only gemma's rows in every bucket).
+model: {lora: {enabled: false}}
+data:
+  buckets:
+    legal:          {model_filter: "google/gemma-4-31B-it"}
+    retrieval:      {model_filter: "google/gemma-4-31B-it"}
+    sts:            {model_filter: "google/gemma-4-31B-it"}
+    classification: {model_filter: "google/gemma-4-31B-it"}
+train: {lr: 1.0e-4}
+output_dir: ./runs/fullft_singlemodel_mnrl

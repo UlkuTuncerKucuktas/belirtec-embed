@@ -1,9 +1,0 @@
-loss:
-  per_dataset: {contrastive: gist}
-data:
-  buckets:
-    legal:          {enabled: false}
-    retrieval:      {enabled: true}
-    sts:            {enabled: true}
-    classification: {enabled: true}
-output_dir: ./runs/no_legal

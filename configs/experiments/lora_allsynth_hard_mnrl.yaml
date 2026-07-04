@@ -1,0 +1,6 @@
+# R7 | LoRA | all synth + legal, legal restricted to RISKY tail (forget=keep_risky) | mnrl
+# Purpose: legal-hardness hard arm (vs R6 safe, vs champion R5 = all legal).
+data:
+  buckets:
+    legal: {forgetting: {mode: keep_risky, threshold: 0.0}}
+output_dir: ./runs/lora_allsynth_hard_mnrl

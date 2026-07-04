@@ -1,0 +1,3 @@
+# R5 | LoRA | all synth + legal | mnrl  (= champion baseline)
+# Purpose: LoRA arm vs full-FT R2; mnrl arm vs gist R11; single-stage vs R9.
+output_dir: ./runs/lora_allsynth_mnrl

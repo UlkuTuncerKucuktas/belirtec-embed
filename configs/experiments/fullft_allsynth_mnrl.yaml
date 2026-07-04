@@ -1,0 +1,5 @@
+# R2 | full fine-tuning | all synthetic buckets + legal (full ~20K each, all 4 models) | mnrl
+# Purpose: +synthetic arm (vs R1); full-FT arm (vs champion R5); full-volume (vs R3b).
+model: {lora: {enabled: false}}
+train: {lr: 1.0e-4}
+output_dir: ./runs/fullft_allsynth_mnrl

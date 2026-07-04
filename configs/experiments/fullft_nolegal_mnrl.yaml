@@ -1,0 +1,8 @@
+# R4 | full fine-tuning | all synthetic buckets EXCEPT legal | mnrl
+# Purpose: -legal arm for "does legal help" (vs R2, full-FT).
+model: {lora: {enabled: false}}
+data:
+  buckets:
+    legal: {enabled: false}
+train: {lr: 1.0e-4}
+output_dir: ./runs/fullft_nolegal_mnrl
