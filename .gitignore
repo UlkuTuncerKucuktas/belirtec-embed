@@ -16,3 +16,4 @@ results/
 src/belirtec-embed/
 runs/
 *.egg-info/
+results_published/
