@@ -1,27 +1,45 @@
-# belirtec-embed — training + evaluation environment (KNOWN-GOOD PINNED STACK)
-#
-# WHY THESE PINS — do not upgrade casually:
-#   Bleeding-edge stacks caused NaN training collapse TWICE in this project:
-#   (1) transformers 5.12 + torch 2.11 -> grad_norm=nan at step 1 (original saga);
-#   (2) torch 2.11+cu130 in the merged gen2 env -> grad_norm=nan on MS MARCO runs
-#       (torch>=2.8 also silently flips the HF Trainer default optimizer to
-#       adamw_torch_fused, which has a NaN history: pytorch/pytorch#95781).
-#   The stack below is the validated one (the original 64.96 champion trained on it).
+# belirtec-embed — training + evaluation environment
+# =====================================================================
+# KNOWN-GOOD PINNED STACK — this exact set trained the full 12-experiment
+# matrix with ZERO NaN. Do not upgrade torch / transformers / sentence-
+# transformers casually: bleeding-edge versions caused NaN training collapse
+# twice in this project —
+#   (1) transformers 5.x + torch 2.11  -> grad_norm=nan at step 1;
+#   (2) torch >= 2.8 silently flips the HF Trainer default optimizer to
+#       adamw_torch_fused, whose fused kernels have a NaN history
+#       (pytorch/pytorch#95781).
+# The loop pins optim="adamw_torch" and installs a non-finite-gradient guard,
+# but the version pins below are the primary defense.
 #
 # Install:
 #   conda create -n belirtec python=3.11 -y && conda activate belirtec
 #   pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu124
-#   pip install -r requirements.txt && pip install -e .
+#   pip install -r requirements.txt
+#   pip install -e .
+#
+# NOTE ON TORCH: torch is NOT listed below because it needs the CUDA wheel
+# index (--index-url .../cu124) which a plain `pip install -r` cannot express.
+# Install it first with the command above. Pinned version: torch==2.5.1+cu124.
 
+# --- the pinned trio (the NaN fix — keep these exact) ---
 transformers==4.49.0
 sentence-transformers==4.1.0
 peft==0.19.1
+
+# --- training ---
+accelerate==1.5.2
 datasets==3.6.0
-accelerate>=1.0,<1.6
-mteb==1.39.7            # 1.x API required by vendored mteb_eval.py; calibrated vs Mizan (+0.20/-0.25)
-pandas>=2.0
-scikit-learn>=1.3
-pyyaml>=6.0
-tqdm
-huggingface-hub
-pytest
+
+# --- evaluation (mteb 1.x API is required by the vendored mteb_eval.py;
+#     this version is calibrated vs the Mizan leaderboard: +0.20 MTEB / -0.25 Legal) ---
+mteb==1.39.7
+scikit-learn==1.9.0
+scipy==1.17.1
+pandas==3.0.3
+
+# --- io / utils ---
+huggingface-hub==0.36.2
+safetensors==0.8.0
+pyyaml==6.0.3
+numpy==2.4.6
+tqdm==4.68.3
