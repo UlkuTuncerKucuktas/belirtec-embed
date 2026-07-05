@@ -1,0 +1,36 @@
+23:01:26 START gpu0 pid 673241 lora_allsynth_gist
+23:01:26 START gpu1 pid 673244 lora_allsynth_msmarco_gist
+23:01:26 START gpu2 pid 673247 lora_allsynth_nolegal_msmarco_gist
+23:01:26 START gpu3 pid 673250 lora_staged_safe2hard_mnrl
+02:11:27 DONE gpu3 lora_staged_safe2hard_mnrl OK nan=0
+0 NO-FINAL
+02:11:27 START gpu3 pid 730576 fullft_allsynth_mnrl
+04:27:58 DONE gpu3 fullft_allsynth_mnrl OK nan=0
+0 final-ok
+04:27:58 START gpu3 pid 785223 fullft_realonly_mnrl
+05:15:29 DONE gpu3 fullft_realonly_mnrl OK nan=0
+0 final-ok
+05:15:29 START gpu3 pid 831632 fullft_singlemodel_mnrl
+06:47:00 DONE gpu2 lora_allsynth_nolegal_msmarco_gist OK nan=0
+0 final-ok
+06:47:00 START gpu2 pid 980756 fullft_multimodel_sizematch_mnrl
+06:50:31 DONE gpu0 lora_allsynth_gist OK nan=0
+0 final-ok
+06:50:31 START gpu0 pid 981131 fullft_nolegal_mnrl
+07:04:01 DONE gpu3 fullft_singlemodel_mnrl OK nan=0
+0 final-ok
+07:04:01 START gpu3 pid 981517 lora_allsynth_mnrl
+08:28:31 DONE gpu1 lora_allsynth_msmarco_gist OK nan=0
+0 final-ok
+08:28:31 START gpu1 pid 1088235 lora_allsynth_safe_mnrl
+08:33:31 DONE gpu2 fullft_multimodel_sizematch_mnrl OK nan=0
+0 final-ok
+08:33:31 START gpu2 pid 1142600 lora_allsynth_hard_mnrl
+08:48:32 DONE gpu0 fullft_nolegal_mnrl OK nan=0
+0 final-ok
+10:37:02 DONE gpu3 lora_allsynth_mnrl OK nan=0
+0 final-ok
+11:30:03 DONE gpu2 lora_allsynth_hard_mnrl OK nan=0
+0 final-ok
+11:34:03 DONE gpu1 lora_allsynth_safe_mnrl OK nan=0
+0 final-ok
