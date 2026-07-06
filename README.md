@@ -51,6 +51,23 @@ Full 12-experiment matrix on the pinned stack (torch 2.5.1 / transformers 4.49 /
 | fullft_nolegal_mnrl | all synth − legal | mnrl | full-FT | 1 | 47.50 | 62.26 |
 | fullft_realonly_mnrl | real NLI+STS only | mnrl | full-FT | 1 | 46.35 | 61.86 |
 
+### LoRA Rank Sensitivity
+
+We swept LoRA rank r ∈ {8, 16, 32, 64} (α = 2r) under the GIST recipe (`lora_r8_gist` / `lora_r16_gist` / `lora_r64_gist`; r32 = `lora_allsynth_gist` above).
+
+| rank | trainable params | Legal | MTEB |
+|---|---|---|---|
+| 8 | 0.62% (3.56M) | 54.83 | 64.06 |
+| 16 | 1.24% (7.11M) | 54.45 | 64.12 |
+| 32 | 2.44% (14.2M) | 54.27 | 63.83 |
+| 64 | 4.77% (28.4M) | 54.41 | 64.30 |
+
+Performance is **rank-robust**: across an 8× range in trainable parameters, Legal
+varies by only 0.56 points and MTEB by 0.47, with no clear optimum (r=8 is highest
+on Legal, r=64 on MTEB). Even r=8 at 0.62% of parameters matches r=64. This
+reinforces that the grounded synthetic data — not adapter capacity — drives
+performance; r=32 is a reasonable default, but the method is insensitive to this choice.
+
 Pinned known-good stack (see `requirements.txt`). The pins matter: bleeding-edge
 torch/transformers caused NaN training collapse; this stack trained the full matrix
 with zero NaN.
