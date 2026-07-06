@@ -1,0 +1,19 @@
+# Qwen3 V2 — recipe per Bagging/Biomedical papers (Qwen3-0.6B = 5e-5):
+#   LR 5e-5, warmup 0.1, single query prompt (byte-match eval), matryoshka [1024,256]
+#   1 epoch (large data)
+model:
+  base: Qwen/Qwen3-Embedding-0.6B
+  lora: {targets: [q_proj, k_proj, v_proj, o_proj]}
+loss:
+  per_dataset: {contrastive: gist}
+  gist_guide: Qwen/Qwen3-Embedding-0.6B
+  matryoshka_dims: [1024, 256]
+data:
+  use_instructions: false
+  query_prompt: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:"
+  document_prompt: ""
+train:
+  lr: 5.0e-5
+  warmup_ratio: 0.1
+  epochs: 1
+output_dir: ./runs/qwen3_v2_gist

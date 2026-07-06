@@ -1,0 +1,4 @@
+# LoRA rank ablation: r=64 (alpha=2r=128).
+model: {lora: {r: 64, alpha: 128}}
+loss: {per_dataset: {contrastive: gist}}
+output_dir: ./runs/lora_r64_gist

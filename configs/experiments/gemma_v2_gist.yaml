@@ -1,0 +1,25 @@
+# gemma V2 — recipe per Google's official fine-tuning guide + literature consensus:
+#   LR 2e-5 (Google default for gemma; 5e-5 too high for this small model)
+#   warmup_ratio 0.1, per-task prompts (byte-match eval), matryoshka [768,256]
+#   1 epoch (large data; Google's 5 is for small data)
+model:
+  base: google/embeddinggemma-300m
+  lora: {targets: [q_proj, k_proj, v_proj, o_proj]}
+loss:
+  per_dataset: {contrastive: gist}
+  gist_guide: google/embeddinggemma-300m
+  matryoshka_dims: [768, 256]
+data:
+  use_instructions: false
+  query_prompt: "task: search result | query: "
+  document_prompt: "title: none | text: "
+  buckets:
+    legal:          {query_prompt: "task: search result | query: ", document_prompt: "title: none | text: "}
+    retrieval:      {query_prompt: "task: search result | query: ", document_prompt: "title: none | text: "}
+    sts:            {query_prompt: "task: sentence similarity | query: ", document_prompt: "title: none | text: "}
+    classification: {query_prompt: "task: classification | query: ", document_prompt: "title: none | text: "}
+train:
+  lr: 2.0e-5
+  warmup_ratio: 0.1
+  epochs: 1
+output_dir: ./runs/gemma_v2_gist

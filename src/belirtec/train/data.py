@@ -41,23 +41,35 @@ def _pad_negs(negs: list[str], k: int) -> list[str] | None:
     return out
 
 
-def _fmt_anchor(anchor: str, instruction: str | None, use_instr: bool) -> str:
+def _fmt_anchor(anchor: str, instruction: str | None, use_instr: bool,
+                query_prompt: str | None = None) -> str:
+    # explicit query_prompt (gemma/qwen native) takes priority over the
+    # legacy Instruct:/Query: instruction format; else raw (bge-m3).
+    if query_prompt is not None:
+        return f"{query_prompt}{anchor}"
     if use_instr and instruction:
         return f"Instruct: {instruction}\nQuery: {anchor}"
     return anchor
 
 
-def _contrastive_row(anchor, positive, negs, k, instruction, use_instr) -> dict | None:
+def _fmt_doc(text: str, document_prompt: str | None = None) -> str:
+    t = " ".join(str(text).split())
+    return f"{document_prompt}{t}" if document_prompt else t
+
+
+def _contrastive_row(anchor, positive, negs, k, instruction, use_instr,
+                     query_prompt=None, document_prompt=None) -> dict | None:
     anchor = " ".join(str(anchor).split())
-    positive = " ".join(str(positive).split())
-    if len(anchor) < 2 or len(positive) < 1 or anchor == positive:
+    positive_clean = " ".join(str(positive).split())
+    if len(anchor) < 2 or len(positive_clean) < 1 or anchor == positive_clean:
         return None
     p = _pad_negs(negs, k)
     if p is None:
         return None
-    row = {"anchor": _fmt_anchor(anchor, instruction, use_instr), "positive": positive}
+    row = {"anchor": _fmt_anchor(anchor, instruction, use_instr, query_prompt),
+           "positive": _fmt_doc(positive, document_prompt)}
     for j, n in enumerate(p, 1):
-        row[f"negative_{j}"] = " ".join(str(n).split())
+        row[f"negative_{j}"] = _fmt_doc(n, document_prompt)
     return row
 
 
@@ -118,12 +130,16 @@ def _load_bucket_rows(name: str, data: DataCfg) -> list[dict]:
     raise ValueError(f"unknown synthetic_source: {data.synthetic_source}")
 
 
-def _rows_to_contrastive(rows, data: DataCfg) -> list[dict]:
+def _rows_to_contrastive(rows, data: DataCfg,
+                         query_prompt=None, document_prompt=None) -> list[dict]:
+    qp = query_prompt if query_prompt is not None else data.query_prompt
+    dp = document_prompt if document_prompt is not None else data.document_prompt
     out = []
     for r in rows:
         row = _contrastive_row(
             r.get("anchor"), r.get("positive"), _neg_list(r),
             data.num_negatives, r.get("instruction"), data.use_instructions,
+            qp, dp,
         )
         if row:
             out.append(row)
@@ -160,7 +176,8 @@ def _build_real_nli(data: DataCfg, seed: int) -> list[dict]:
     out = []
     for i in idx:
         ex = nli[i]
-        row = _contrastive_row(ex[a_c], ex[p_c], [ex[n_c]], data.num_negatives, None, data.use_instructions)
+        row = _contrastive_row(ex[a_c], ex[p_c], [ex[n_c]], data.num_negatives, None,
+                               data.use_instructions, data.query_prompt, data.document_prompt)
         if row:
             out.append(row)
     return out
@@ -192,6 +209,7 @@ def _build_msmarco(data: DataCfg, seed: int) -> list[dict]:
         row = _contrastive_row(
             ex.get("query_text"), ex.get("pos_text"), [ex.get("neg_text")],
             data.num_negatives, None, data.use_instructions,
+            data.query_prompt, data.document_prompt,
         )
         if row:
             out.append(row)
@@ -284,7 +302,7 @@ def build_datasets(cfg: TrainingConfig) -> tuple[dict, dict, tuple | None]:
             continue
         rows = _load_bucket_rows(name, data)
         rows = _select(rows, spec, seed)
-        conv = _rows_to_contrastive(rows, data)
+        conv = _rows_to_contrastive(rows, data, spec.query_prompt, spec.document_prompt)
         counts[name] = len(conv)
         contrastive += conv
 
@@ -297,7 +315,7 @@ def build_datasets(cfg: TrainingConfig) -> tuple[dict, dict, tuple | None]:
     if cspec and cspec.enabled:
         rows = _load_bucket_rows("classification", data)
         rows = _select(rows, cspec, seed)
-        class_rows = _rows_to_contrastive(rows, data)
+        class_rows = _rows_to_contrastive(rows, data, cspec.query_prompt, cspec.document_prompt)
         random.Random(seed + 1).shuffle(class_rows)
     counts["classification"] = len(class_rows)
 

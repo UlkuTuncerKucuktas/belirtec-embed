@@ -1,0 +1,12 @@
+# BASE SWAP: embeddinggemma-300m instead of bge-m3, GIST recipe.
+# dim=768, so matryoshka MUST be [768, 256] not [1024, 256].
+# guide = gemma itself (same tokenizer) to avoid the ST 5.x cross-tokenizer GIST bug.
+# Runs on belirtec-newbase (torch 2.6, ST 5.x) — different stack from bge-m3 matrix.
+model:
+  base: google/embeddinggemma-300m
+  lora: {targets: [q_proj, k_proj, v_proj, o_proj]}
+loss:
+  per_dataset: {contrastive: gist}
+  gist_guide: google/embeddinggemma-300m
+  matryoshka_dims: [768, 256]
+output_dir: ./runs/gemma_allsynth_gist

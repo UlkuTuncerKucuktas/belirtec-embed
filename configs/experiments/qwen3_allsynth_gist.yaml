@@ -1,0 +1,13 @@
+# BASE SWAP: Qwen3-Embedding-0.6B instead of bge-m3, GIST recipe (guide = Qwen3
+# itself, so no cross-tokenizer retokenize -> avoids the ST 5.x CachedGIST bug).
+# Full-mix data (legal + retrieval + sts + classification + nli), gist + Matryoshka.
+# Runs on env belirtec-newbase (transformers>=4.56, ST 5.x, torch 2.6) — a DIFFERENT
+# stack from the bge-m3 pinned matrix. Compare to bge-m3 gist (lora_allsynth_gist
+# 54.27) as the reference, noting the stack difference.
+model:
+  base: Qwen/Qwen3-Embedding-0.6B
+  lora: {targets: [q_proj, k_proj, v_proj, o_proj]}
+loss:
+  per_dataset: {contrastive: gist}
+  gist_guide: Qwen/Qwen3-Embedding-0.6B
+output_dir: ./runs/qwen3_allsynth_gist
