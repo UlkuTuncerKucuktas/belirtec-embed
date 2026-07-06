@@ -42,6 +42,8 @@ class BucketSpec:
     seed: int | None = None
     forgetting: Forgetting = field(default_factory=Forgetting)
     model_filter: str | None = None
+    query_prompt: str | None = None
+    document_prompt: str | None = None
 
 
 @dataclass(frozen=True)
@@ -56,6 +58,8 @@ class DataCfg:
     use_instructions: bool
     buckets: dict[str, BucketSpec]
     real_nli: BucketSpec
+    query_prompt: str | None = None
+    document_prompt: str | None = None
     msmarco: dict | None = None
 
 
@@ -126,6 +130,8 @@ def _build(raw: dict) -> TrainingConfig:
         use_instructions=d["use_instructions"],
         buckets={k: _bucket_spec(v) for k, v in d["buckets"].items()},
         real_nli=_bucket_spec(d.get("real_nli", {})),
+        query_prompt=d.get("query_prompt"),
+        document_prompt=d.get("document_prompt"),
         msmarco=d.get("msmarco"),
     )
 

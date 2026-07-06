@@ -1,0 +1,5 @@
+# LoRA rank ablation: r=8 (alpha=2r=16). All else = lora_allsynth_gist recipe.
+# Justifies the r=32 choice (vs this + r16 + r64 + r32).
+model: {lora: {r: 8, alpha: 16}}
+loss: {per_dataset: {contrastive: gist}}
+output_dir: ./runs/lora_r8_gist
